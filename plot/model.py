@@ -5,11 +5,11 @@ from PySide import QtCore
 import utils
 
 
-class GraphicModel(QtCore.QObject):
+class PlotModel(QtCore.QObject):
     data_updated = QtCore.Signal()
 
     def __init__(self):
-        super(GraphicModel, self).__init__()
+        super(PlotModel, self).__init__()
 
         self.__points = []
         self.__bound = None

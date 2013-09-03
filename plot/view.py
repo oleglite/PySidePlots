@@ -6,8 +6,8 @@ from PySide.QtGui import *
 import utils
 
 
-class GraphicLook:
-    # Graphic spacing
+class PlotLook:
+    # Plot spacing
     hspace = 60
     vspace = 40
 
@@ -37,7 +37,7 @@ class GraphicLook:
     border_pen = QPen(Qt.black)
 
 
-class GraphicView(QWidget):
+class PlotView(QWidget):
     def __init__(self, parent, model, look):
         QWidget.__init__(self, parent)
 

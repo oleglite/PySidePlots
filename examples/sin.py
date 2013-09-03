@@ -3,7 +3,7 @@
 from PySide.QtCore import *
 from PySide.QtGui import *
 import sys, math
-import utils, graphic
+import utils, plot
 
 
 class DataThread(QThread):
@@ -40,15 +40,15 @@ class ThreadController(QObject):
 def main():
     app = QApplication(sys.argv)
 
-    graphic_widget = graphic.Widget(None)
-    graphic_widget.resize(QSize(800, 600))
-    graphic_widget.show()
+    plot_widget = plot.Widget(None)
+    plot_widget.resize(QSize(800, 600))
+    plot_widget.show()
 
     data_thread = DataThread()
-    data_thread.new_point.connect(graphic_widget.add_point)
+    data_thread.new_point.connect(plot_widget.add_point)
 
     data_thread_controller = ThreadController(data_thread)
-    graphic_widget.destroyed.connect(data_thread_controller.stop)
+    plot_widget.destroyed.connect(data_thread_controller.stop)
 
     data_thread.start()
 
