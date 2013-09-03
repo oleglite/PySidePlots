@@ -16,7 +16,8 @@ class GraphicLook:
 
     # Data
     data_pen = QPen(Qt.green)
-    #data_pen.setWidth(2)
+    data_pen.setWidth(2)
+    data_pen.setCapStyle(Qt.RoundCap)
 
     # Arrows and strokes
     arrows_pen = QPen(Qt.black)
@@ -42,9 +43,13 @@ class GraphicView(QWidget):
 
         self.__model = model
         self.__look = look
+        self.__drawing_area_rect = None
 
         self.setMinimumSize(QSize(self.__look.hspace, self.__look.vspace) * 2)
-        self.__drawing_area_rect = None
+
+    @property
+    def model(self):
+        return self.__model
 
     def paintEvent(self, event):
         QWidget.paintEvent(self, event)
@@ -53,8 +58,8 @@ class GraphicView(QWidget):
         self.__draw_background(painter)
 
         if len(self.__model.points) > 1:
-            self.__draw_arrows(painter)
             self.__draw_data(painter)
+            self.__draw_arrows(painter)
 
         self.__draw_border(painter)
 
@@ -106,25 +111,30 @@ class GraphicView(QWidget):
 
     def __draw_strokes(self, painter, direction, strokes, strokes_line_pos, strokes_opposite_line_pos, shift_qpoint):
         for pos, value in strokes:
-            # Draw stroke
-            painter.setPen(self.__look.arrows_pen)
-            painter.drawLine(QPoint(*direction.point(pos, strokes_line_pos + self.__look.stroke_size)),
-                             QPoint(*direction.point(pos, strokes_line_pos - self.__look.stroke_size)))
+            self.__draw_grid_line(painter, direction, pos, strokes_line_pos, strokes_opposite_line_pos)
+            self.__draw_stroke(painter, direction, pos, strokes_line_pos)
+            self.__draw_stroke_text(painter, direction, value, pos, strokes_line_pos, shift_qpoint)
 
-            # Draw stroke text
-            stroke_text = str(round(value, 3))
-            if direction.is_x():
-                painter.drawText(QPoint(*direction.point(pos, strokes_line_pos)) + shift_qpoint, stroke_text)
-            elif direction.is_y():
-                flags = Qt.AlignRight | Qt.AlignTop
-                rect = painter.boundingRect(self.rect().left() + shift_qpoint.x(), pos + shift_qpoint.y(),
-                                            strokes_line_pos, self.__drawing_area_rect.height(),
-                                            flags, stroke_text)
-                painter.drawText(rect, flags, stroke_text)
+    def __draw_stroke(self, painter, direction, pos, strokes_line_pos):
+        painter.setPen(self.__look.arrows_pen)
+        painter.drawLine(QPoint(*direction.point(pos, strokes_line_pos + self.__look.stroke_size)),
+                         QPoint(*direction.point(pos, strokes_line_pos - self.__look.stroke_size)))
 
-            # Draw grid line
-            painter.setPen(self.__look.grid_pen)
-            if self.__look.draw_grid:
-                if not self.__look.draw_border or pos != direction.rect_right(utils.Rect(self.__drawing_area_rect)):
-                    painter.drawLine(QPoint(*direction.point(pos, strokes_line_pos)),
-                                     QPoint(*direction.point(pos, strokes_opposite_line_pos)))
+    def __draw_stroke_text(self, painter, direction, value, pos, strokes_line_pos, shift_qpoint):
+        painter.setPen(self.__look.arrows_pen)
+        stroke_text = str(round(value, 3))
+        if direction.is_x():
+            painter.drawText(QPoint(*direction.point(pos, strokes_line_pos)) + shift_qpoint, stroke_text)
+        elif direction.is_y():
+            flags = Qt.AlignRight | Qt.AlignTop
+            rect = painter.boundingRect(self.rect().left() + shift_qpoint.x(), pos + shift_qpoint.y(),
+                                        strokes_line_pos, self.__drawing_area_rect.height(),
+                                        flags, stroke_text)
+            painter.drawText(rect, flags, stroke_text)
+
+    def __draw_grid_line(self, painter, direction, pos, strokes_line_pos, strokes_opposite_line_pos):
+        painter.setPen(self.__look.grid_pen)
+        if self.__look.draw_grid:
+            if not self.__look.draw_border or pos != direction.rect_right(utils.Rect(self.__drawing_area_rect)):
+                painter.drawLine(QPoint(*direction.point(pos, strokes_line_pos)),
+                                 QPoint(*direction.point(pos, strokes_opposite_line_pos)))
